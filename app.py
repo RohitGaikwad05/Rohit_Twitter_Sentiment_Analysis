@@ -1,3 +1,5 @@
+# app.py
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -5,14 +7,20 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 import string
-
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-# Set Streamlit config
+# ------------------ CONFIG ------------------ #
 st.set_page_config(page_title="Twitter Sentiment Analyzer", layout="wide")
+st.markdown("<h1 style='text-align: center; color: #1DA1F2;'>💬 Twitter Sentiment Analyzer</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Analyze Twitter sentiments using Logistic Regression & NLP</p>", unsafe_allow_html=True)
+st.markdown("---")
+
+# ------------------ SIDEBAR NAVIGATION ------------------ #
+st.sidebar.title("📌 Navigation")
+page = st.sidebar.radio("Go to", ["🏠 Overview", "📊 Data & Visualization", "🔮 Live Prediction"])
 
 # ------------------ CLEANING FUNCTION ------------------ #
 def clean_text(text):
@@ -36,7 +44,7 @@ def load_data():
 
 df = load_data()
 
-# ------------------ VECTORIZER & MODEL ------------------ #
+# ------------------ MODEL TRAINING ------------------ #
 vectorizer = TfidfVectorizer(max_features=5000)
 X = vectorizer.fit_transform(df['clean_text'])
 y = df['target']
@@ -47,36 +55,27 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 
-# ------------------ SIDEBAR NAVIGATION ------------------ #
-st.sidebar.title("📌 Navigation")
-page = st.sidebar.radio("Go to", ["🏠 Overview", "📊 Data & Visualization", "🔮 Live Prediction"])
-
-# ------------------ HEADER ------------------ #
-st.markdown("<h1 style='text-align: center; color: #1DA1F2;'>💬 Twitter Sentiment Analyzer</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Analyze sentiments from tweets using Machine Learning and NLP</p>", unsafe_allow_html=True)
-st.markdown("---")
-
-# ------------------ OVERVIEW ------------------ #
+# ------------------ PAGE: OVERVIEW ------------------ #
 if page == "🏠 Overview":
-    st.subheader("🧠 Sentiment Classification using Logistic Regression")
+    st.subheader("🧠 Model Performance")
     st.success(f"✅ **Model Accuracy:** {accuracy:.4f}")
 
-    with st.expander("📋 Classification Report"):
+    st.markdown("### 📋 Classification Report")
+    with st.expander("View Full Report"):
         report = classification_report(y_test, y_pred, output_dict=True)
         st.dataframe(pd.DataFrame(report).transpose(), use_container_width=True)
 
     st.markdown("### 📌 Confusion Matrix")
-    fig2, ax2 = plt.subplots()
+    fig, ax = plt.subplots()
     cm = confusion_matrix(y_test, y_pred)
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax,
                 xticklabels=['Negative', 'Positive'],
-                yticklabels=['Negative', 'Positive'],
-                ax=ax2)
-    ax2.set_xlabel("Predicted")
-    ax2.set_ylabel("Actual")
-    st.pyplot(fig2)
+                yticklabels=['Negative', 'Positive'])
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    st.pyplot(fig)
 
-# ------------------ DATA AND VISUALIZATION ------------------ #
+# ------------------ PAGE: DATA & VISUALIZATION ------------------ #
 elif page == "📊 Data & Visualization":
     st.subheader("🔍 Preview Sample Data")
     st.dataframe(df[['target', 'text', 'clean_text']].sample(5), use_container_width=True)
@@ -98,22 +97,24 @@ elif page == "📊 Data & Visualization":
         ax.set_xlabel("Sentiment")
         st.pyplot(fig)
 
-# ------------------ LIVE PREDICTION ------------------ #
+# ------------------ PAGE: LIVE PREDICTION ------------------ #
 elif page == "🔮 Live Prediction":
-    st.subheader("🔮 Predict Sentiment from Your Own Tweet")
+    st.subheader("🔮 Predict the Sentiment of Your Tweet")
+    tweet = st.text_area("✍️ Enter your tweet:")
 
-    user_input = st.text_area("✍️ Enter your tweet text here:")
-
-    if st.button("Predict Sentiment"):
-        if user_input.strip() == "":
-            st.warning("⚠️ Please enter a tweet to analyze.")
+    if st.button("Predict"):
+        if tweet.strip() == "":
+            st.warning("⚠️ Please enter a tweet.")
         else:
-            cleaned_input = clean_text(user_input)
-            vectorized_input = vectorizer.transform([cleaned_input])
-            prediction = model.predict(vectorized_input)[0]
-            label = "👍 Positive" if prediction == 1 else "👎 Negative"
-            st.markdown(f"### 🎯 Predicted Sentiment: **{label}**")
+            cleaned = clean_text(tweet)
+            vec_input = vectorizer.transform([cleaned])
+            prediction = model.predict(vec_input)[0]
+            emoji = "👍" if prediction == 1 else "👎"
+            sentiment = "Positive" if prediction == 1 else "Negative"
+            st.success(f"🎯 **Predicted Sentiment:** {emoji} {sentiment}")
 
 # ------------------ FOOTER ------------------ #
 st.markdown("---")
+st.markdown("<p style='text-align:center;'>🚀 Built with ❤️ using Streamlit | Logistic Regression + NLP</p>", unsafe_allow_html=True)
+
 st.markdown("<p style='text-align:center;'>🚀 Built with ❤️ using Streamlit</p>", unsafe_allow_html=True)
