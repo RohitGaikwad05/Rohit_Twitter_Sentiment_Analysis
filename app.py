@@ -37,9 +37,9 @@ def clean_text(text):
 def load_data():
     url = "https://raw.githubusercontent.com/RohitGaikwad05/Rohitml/refs/heads/main/balanced_tweets_all_features.csv"
     column_names = ['target', 'id', 'date', 'query', 'user', 'text']
-    df = pd.read_csv(url, encoding='latin-1', names=column_names)
+    df = pd.read_csv(url, encoding='latin-1', names=column_names, dtype={'target': str, 'id': str}, low_memory=False)
     df['clean_text'] = df['text'].apply(clean_text)
-    df['target'] = df['target'].apply(lambda x: 1 if x == 4 else 0)
+    df['target'] = df['target'].apply(lambda x: 1 if x == '4' else 0)
     return df
 
 df = load_data()
@@ -91,7 +91,8 @@ elif page == "📊 Data & Visualization":
 
     with col2:
         fig, ax = plt.subplots()
-        sns.countplot(x='target', data=df, palette='coolwarm', ax=ax)
+        sns.countplot(x='target', data=df, hue='target', palette='coolwarm', ax=ax, legend=False)
+        ax.set_xticks([0, 1])
         ax.set_xticklabels(['Negative', 'Positive'])
         ax.set_ylabel("Tweet Count")
         ax.set_xlabel("Sentiment")
@@ -116,5 +117,3 @@ elif page == "🔮 Live Prediction":
 # ------------------ FOOTER ------------------ #
 st.markdown("---")
 st.markdown("<p style='text-align:center;'>🚀 Built with ❤️ using Streamlit | Logistic Regression + NLP</p>", unsafe_allow_html=True)
-
-st.markdown("<p style='text-align:center;'>🚀 Built with ❤️ using Streamlit</p>", unsafe_allow_html=True)
