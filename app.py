@@ -64,11 +64,35 @@ with col2:
     ax.set_xlabel("Sentiment")
     st.pyplot(fig)
 
+
+
 # ------------------ MODEL ------------------ #
 st.markdown("### 🧠 Sentiment Classification using Logistic Regression")
 
 vectorizer = TfidfVectorizer(max_features=5000)
-X = vectorizer.fit_transform(df['clean_text'])
+X = vectorizer.fit_trans# ------------------ CONFUSION MATRIX ------------------ #
+st.markdown("### 📌 Confusion Matrix")
+fig2, ax2 = plt.subplots()
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Negative', 'Positive'],
+            yticklabels=['Negative', 'Positive'],
+            ax=ax2)
+ax2.set_xlabel("Predicted")
+ax2.set_ylabel("Actual")
+st.pyplot(fig2)
+
+# ------------------ CONFUSION MATRIX ------------------ #
+st.markdown("### 📌 Confusion Matrix")
+fig2, ax2 = plt.subplots()
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Negative', 'Positive'],
+            yticklabels=['Negative', 'Positive'],
+            ax=ax2)
+ax2.set_xlabel("Predicted")
+ax2.set_ylabel("Actual")
+st.pyplot(fig2)form(df['clean_text'])
 y = df['target']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -86,17 +110,6 @@ with st.expander("📋 Classification Report"):
     report = classification_report(y_test, y_pred, output_dict=True)
     st.dataframe(pd.DataFrame(report).transpose(), use_container_width=True)
 
-# ------------------ CONFUSION MATRIX ------------------ #
-st.markdown("### 📌 Confusion Matrix")
-fig2, ax2 = plt.subplots()
-cm = confusion_matrix(y_test, y_pred)
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-            xticklabels=['Negative', 'Positive'],
-            yticklabels=['Negative', 'Positive'],
-            ax=ax2)
-ax2.set_xlabel("Predicted")
-ax2.set_ylabel("Actual")
-st.pyplot(fig2)
 
 # ------------------ FOOTER ------------------ #
 st.markdown("---")
