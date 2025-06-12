@@ -26,7 +26,7 @@ column_names = ['target', 'id', 'date', 'query', 'user', 'text']
 
 # Load dataset
 if uploaded_file:
-    df = pd.read_csv(uploaded_file, encoding='latin-1', names=column_names)
+    df = pd.read_csv('TwitterData_24MB.csv')
 else:
     st.warning("📂 Please upload a CSV file (sampled under 300MB).")
     st.stop()
