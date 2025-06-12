@@ -11,27 +11,25 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-# Set page configuration
+# Set wide layout
 st.set_page_config(page_title="Twitter Sentiment Analyzer", layout="wide")
 
-st.title("💬 Twitter Sentiment Analysis")
-st.markdown("Analyze tweet sentiment (Positive or Negative) using Logistic Regression.")
+# ------------------ HEADER ------------------ #
+st.markdown("<h1 style='text-align: center; color: #1DA1F2;'>💬 Twitter Sentiment Analyzer</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Analyze sentiment from tweets using machine learning and NLP</p>", unsafe_allow_html=True)
+st.markdown("---")
 
-# Sidebar for file upload
-st.sidebar.title("Upload Dataset")
-uploaded_file = st.sidebar.file_uploader("Upload a sampled Twitter dataset (<300MB)", type=["csv"])
+# ------------------ LOAD DATA ------------------ #
+@st.cache_data
+def load_data():
+    url = "https://raw.githubusercontent.com/RohitGaikwad05/Rohitml/refs/heads/main/TwitterData_24MB.csv"
+    column_names = ['target', 'id', 'date', 'query', 'user', 'text']
+    df = pd.read_csv(url, encoding='latin-1', names=column_names)
+    return df
 
-# Column names
-column_names = ['target', 'id', 'date', 'query', 'user', 'text']
+df = load_data()
 
-# Load dataset
-if uploaded_file:
-    df = pd.read_csv('https://raw.githubusercontent.com/RohitGaikwad05/Rohitml/refs/heads/main/TwitterData_24MB.csv')
-else:
-    st.warning("📂 Please upload a CSV file (sampled under 300MB).")
-    st.stop()
-
-# Preprocess text
+# ------------------ CLEANING ------------------ #
 def clean_text(text):
     text = str(text).lower()
     text = re.sub(r"http\S+|www\S+|https\S+", '', text)
@@ -42,45 +40,54 @@ def clean_text(text):
     return text
 
 df['clean_text'] = df['text'].apply(clean_text)
-
-# Convert target: 0 = Negative, 4 = Positive → 0/1
 df['target'] = df['target'].apply(lambda x: 1 if x == 4 else 0)
 
-# Show a sample of the data
-st.subheader("📋 Sample Data")
-st.write(df[['target', 'text', 'clean_text']].sample(5))
+# ------------------ SAMPLE DATA ------------------ #
+with st.expander("🔍 Preview Sample Data", expanded=True):
+    st.dataframe(df[['target', 'text', 'clean_text']].sample(5), use_container_width=True)
 
-# Sentiment distribution
-st.subheader("📊 Sentiment Distribution")
-fig, ax = plt.subplots()
-sns.countplot(x='target', data=df, ax=ax)
-ax.set_xticklabels(['Negative', 'Positive'])
-ax.set_ylabel("Tweet Count")
-st.pyplot(fig)
+# ------------------ DISTRIBUTION ------------------ #
+st.markdown("### 📊 Sentiment Distribution")
+col1, col2 = st.columns([2, 5])
 
-# TF-IDF Vectorization
+with col1:
+    pos_count = df['target'].sum()
+    neg_count = len(df) - pos_count
+    st.metric("👍 Positive Tweets", f"{pos_count:,}")
+    st.metric("👎 Negative Tweets", f"{neg_count:,}")
+
+with col2:
+    fig, ax = plt.subplots()
+    sns.countplot(x='target', data=df, palette='coolwarm', ax=ax)
+    ax.set_xticklabels(['Negative', 'Positive'])
+    ax.set_ylabel("Tweet Count")
+    ax.set_xlabel("Sentiment")
+    st.pyplot(fig)
+
+# ------------------ MODEL ------------------ #
+st.markdown("### 🧠 Sentiment Classification using Logistic Regression")
+
 vectorizer = TfidfVectorizer(max_features=5000)
 X = vectorizer.fit_transform(df['clean_text'])
 y = df['target']
 
-# Train/Test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Logistic Regression Model
 model = LogisticRegression(max_iter=2000)
 model.fit(X_train, y_train)
-
-# Predictions
 y_pred = model.predict(X_test)
 
-# Accuracy and Classification Report
-st.subheader("✅ Model Performance")
-st.write(f"**Accuracy:** {accuracy_score(y_test, y_pred):.4f}")
-st.text("Classification Report:")
-st.text(classification_report(y_test, y_pred))
+accuracy = accuracy_score(y_test, y_pred)
 
-# Confusion Matrix
-st.subheader("📌 Confusion Matrix")
+# ------------------ METRICS ------------------ #
+st.success(f"✅ **Model Accuracy:** {accuracy:.4f}")
+
+with st.expander("📋 Classification Report"):
+    report = classification_report(y_test, y_pred, output_dict=True)
+    st.dataframe(pd.DataFrame(report).transpose(), use_container_width=True)
+
+# ------------------ CONFUSION MATRIX ------------------ #
+st.markdown("### 📌 Confusion Matrix")
 fig2, ax2 = plt.subplots()
 cm = confusion_matrix(y_test, y_pred)
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
@@ -90,3 +97,7 @@ sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
 ax2.set_xlabel("Predicted")
 ax2.set_ylabel("Actual")
 st.pyplot(fig2)
+
+# ------------------ FOOTER ------------------ #
+st.markdown("---")
+st.markdown("<p style='text-align:center;'>🚀 Built with ❤️ using Streamlit</p>", unsafe_allow_html=True)
