@@ -22,7 +22,7 @@ st.markdown("---")
 # ------------------ LOAD DATA ------------------ #
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/RohitGaikwad05/Rohitml/refs/heads/main/TwitterData_24MB.csv"
+    url = "https://raw.githubusercontent.com/RohitGaikwad05/Rohitml/refs/heads/main/balanced_tweets_all_features.csv"
     column_names = ['target', 'id', 'date', 'query', 'user', 'text']
     df = pd.read_csv(url, encoding='latin-1', names=column_names)
     return df
