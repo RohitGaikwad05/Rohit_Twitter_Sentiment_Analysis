@@ -13,14 +13,14 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # ------------------ CONFIG ------------------ #
-st.set_page_config(page_title="Twitter Sentiment Analyzer", layout="wide")
+st.set_page_config(page_title="Twitter(X) Sentiment Analyzer", layout="wide")
 st.markdown("<h1 style='text-align: center; color: #1DA1F2;'>💬 Twitter Sentiment Analyzer</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Analyze Twitter sentiments using Logistic Regression & NLP</p>", unsafe_allow_html=True)
 st.markdown("---")
 
 # ------------------ SIDEBAR NAVIGATION ------------------ #
-st.sidebar.title("📌 Navigation")
-page = st.sidebar.radio("Go to", ["🏠 Overview", "📊 Data & Visualization", "🔮 Live Prediction"])
+st.sidebar.title("📌 Menu")
+page = st.sidebar.radio("Go to", ["🏠 Home", "📊 Data & Visualization", "🔮 Live Prediction"])
 
 # ------------------ CLEANING FUNCTION ------------------ #
 def clean_text(text):
@@ -56,7 +56,32 @@ y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 
 # ------------------ PAGE: OVERVIEW ------------------ #
-if page == "🏠 Overview":
+if page == "🏠 Home":
+    st.title("🧠 Twitter(X) Sentiment Analysis with Logistic Regression")
+    st.markdown("""
+    This web app uses a machine learning model (Logistic Regression) to analyze Twitter(X) sentiments.
+    
+    **Features**:
+    - Cleans and preprocesses raw tweet text
+    - Transforms text using TF-IDF vectorization
+    - Trains on labeled dataset to classify sentiment
+    - Displays model performance and predictions interactively
+
+    **Labels**:
+    - `0`: Negative 😞  
+    - `1`: Positive 😊
+
+    **Built with**:
+    - Scikit-learn
+    - Streamlit
+    - Matplotlib & Seaborn
+    """)
+
+# ------------------ PAGE: DATA & VISUALIZATION ------------------ #
+elif page == "📊 Data & Visualization":
+    st.subheader("🔍 Preview Sample Data")
+    st.dataframe(df[['target', 'text', 'clean_text']].sample(5), use_container_width=True)
+
     st.subheader("🧠 Model Performance")
     st.success(f"✅ **Model Accuracy:** {accuracy:.4f}")
 
@@ -74,11 +99,6 @@ if page == "🏠 Overview":
     ax.set_xlabel("Predicted")
     ax.set_ylabel("Actual")
     st.pyplot(fig)
-
-# ------------------ PAGE: DATA & VISUALIZATION ------------------ #
-elif page == "📊 Data & Visualization":
-    st.subheader("🔍 Preview Sample Data")
-    st.dataframe(df[['target', 'text', 'clean_text']].sample(5), use_container_width=True)
 
     st.markdown("### 📊 Sentiment Distribution")
     col1, col2 = st.columns([2, 5])
