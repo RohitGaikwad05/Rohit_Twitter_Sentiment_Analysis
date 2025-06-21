@@ -35,32 +35,40 @@ def clean_text(text):
 # ------------------ LOAD DATA ------------------ #
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/RohitGaikwad05/Rohitml/refs/heads/main/balanced_tweets_all_features.csv"
-    column_names = ['target', 'id', 'date', 'query', 'user', 'text']
-    df = pd.read_csv(url, encoding='latin-1', names=column_names, dtype={'target': str, 'id': str}, low_memory=False)
-    df['clean_text'] = df['text'].apply(clean_text)
-    df['target'] = df['target'].apply(lambda x: 1 if x == '4' else 0)
-    return df
+    try:
+        url = "https://raw.githubusercontent.com/RohitGaikwad05/Rohitml/main/balanced_tweets_all_features.csv"
+        column_names = ['target', 'id', 'date', 'query', 'user', 'text']
+        df = pd.read_csv(url, encoding='latin-1', names=column_names, dtype={'target': str, 'id': str}, low_memory=False)
+        df['clean_text'] = df['text'].apply(clean_text)
+        df['target'] = df['target'].apply(lambda x: 1 if x == '4' else 0)
+        return df
+    except Exception as e:
+        st.error(f"❌ Failed to load data: {e}")
+        st.stop()
 
 df = load_data()
 
 # ------------------ MODEL TRAINING ------------------ #
-vectorizer = TfidfVectorizer(max_features=5000)
-X = vectorizer.fit_transform(df['clean_text'])
-y = df['target']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+@st.cache_resource
+def train_model(data):
+    vectorizer = TfidfVectorizer(max_features=5000)
+    X = vectorizer.fit_transform(data['clean_text'])
+    y = data['target']
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = LogisticRegression(max_iter=2000)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    return model, vectorizer, X_test, y_test, y_pred, accuracy
 
-model = LogisticRegression(max_iter=2000)
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
+model, vectorizer, X_test, y_test, y_pred, accuracy = train_model(df)
 
-# ------------------ PAGE: OVERVIEW ------------------ #
+# ------------------ PAGE: HOME ------------------ #
 if page == "🏠 Home":
     st.title("🧠 Twitter(X) Sentiment Analysis with Logistic Regression")
     st.markdown("""
     This web app uses a machine learning model (Logistic Regression) to analyze Twitter(X) sentiments.
-    
+
     **Features**:
     - Cleans and preprocesses raw tweet text
     - Transforms text using TF-IDF vectorization
